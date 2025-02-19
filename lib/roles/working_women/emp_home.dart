@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:women_safety_framework/roles/normal_user/home.dart';
 import 'package:women_safety_framework/roles/working_women/emp_signin.dart';
+import 'package:women_safety_framework/roles/workplace_policies.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -236,20 +237,59 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 20),
               Center(
-                child: ElevatedButton(
-                  onPressed: _addEmergencyContact,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: hexStringToColor("CB2B93"),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _addEmergencyContact,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: hexStringToColor("CB2B93"),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Text(
+                        "Add Emergency Contact",
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    "Add Emergency Contact",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                    SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        if (organizationId != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => WorkplacePolicies(
+                                organizationId: organizationId!,
+                              ),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content:
+                                    Text('Organization ID not available!')),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.visibility, color: Colors.white),
+                      label: Text(
+                        "View Workplace Policies",
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: hexStringToColor("CB2B93"),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
