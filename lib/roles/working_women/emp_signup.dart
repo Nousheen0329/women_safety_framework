@@ -32,30 +32,23 @@ class _EmpSignupState extends State<EmpSignup> {
     String orgName = _organizationNameTextController.text.trim();
 
     try {
-      // Check if the organization exists in Firestore
       DocumentSnapshot orgSnapshot =
           await _firestore.collection("organization").doc(orgId).get();
 
       if (!orgSnapshot.exists) {
-        // Show error if organization does not exist
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Organization ID does not exist!")),
         );
         return;
       }
 
-      // Create user with Firebase Authentication
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Store user details in Firestore under 'working_women'
-      await _firestore
-          .collection("working_women")
-          .doc(userCredential.user!.uid)
-          .set({
+      Map<String, dynamic> workingWomenData = {
         "name": _userNameTextController.text.trim(),
         "employee_id": _employeeIDTextController.text.trim(),
         "phone_number": _phoneNumberTextController.text.trim(),
@@ -64,9 +57,26 @@ class _EmpSignupState extends State<EmpSignup> {
         "email": email,
         "uid": userCredential.user!.uid,
         "created_at": FieldValue.serverTimestamp(),
-      });
+      };
 
-      // Navigate to sign-in screen
+      await _firestore
+          .collection("working_women")
+          .doc(userCredential.user!.uid)
+          .set(workingWomenData);
+
+      Map<String, dynamic> normalUserData = {
+        "name": _userNameTextController.text.trim(),
+        "email": email,
+        "phone_number": _phoneNumberTextController.text.trim(),
+        "uid": userCredential.user!.uid,
+        "created_at": FieldValue.serverTimestamp(),
+      };
+
+      await _firestore
+          .collection("normal_users")
+          .doc(userCredential.user!.uid)
+          .set(normalUserData);
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => EmpSignin()),

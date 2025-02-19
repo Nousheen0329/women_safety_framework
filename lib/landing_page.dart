@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:women_safety_framework/roles/normal_user/home.dart';
+import 'package:women_safety_framework/roles/normal_user/signin.dart';
 import 'package:women_safety_framework/roles/organization_admin/admin_signin.dart';
 import 'package:women_safety_framework/roles/working_women/emp_signin.dart';
 import 'package:women_safety_framework/reusable_widgets/reusable_widgets.dart';
@@ -34,9 +34,9 @@ class LandingPage extends StatelessWidget {
                 children: [
                   logoWidget("assets/images/logo1.png"),
                   const SizedBox(height: 30),
-                  firebaseUIButton(context, "Continue as Normal User", () {
+                  firebaseUIButton(context, "Sign in as Normal User", () {
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Home()));
+                        MaterialPageRoute(builder: (context) => Signin()));
                   }),
                   const SizedBox(height: 20),
                   firebaseUIButton(context, "Sign in as Organization Admin",
