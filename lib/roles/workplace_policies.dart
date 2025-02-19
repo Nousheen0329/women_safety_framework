@@ -5,8 +5,12 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class WorkplacePolicies extends StatefulWidget {
   final String organizationId;
-  const WorkplacePolicies({Key? key, required this.organizationId})
-      : super(key: key);
+  final bool isAdmin;
+  const WorkplacePolicies({
+    Key? key,
+    required this.organizationId,
+    required this.isAdmin,
+  }) : super(key: key);
 
   @override
   State<WorkplacePolicies> createState() => _WorkplacePoliciesState();
@@ -88,10 +92,12 @@ class _WorkplacePoliciesState extends State<WorkplacePolicies> {
               return Card(
                 child: ListTile(
                   title: Text(fileName),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _deleteFile(file.id, filePath),
-                  ),
+                  trailing: widget.isAdmin
+                      ? IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteFile(file.id, filePath),
+                        )
+                      : null,
                   onTap: () => _viewPDF(fileUrl),
                 ),
               );
@@ -110,7 +116,7 @@ class PDFViewerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('View PDF')),
+      appBar: AppBar(title: const Text('Workplace Policies')),
       body: SfPdfViewer.network(pdfUrl),
     );
   }

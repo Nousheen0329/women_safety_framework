@@ -271,6 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             MaterialPageRoute(
                               builder: (context) => WorkplacePolicies(
                                 organizationId: organizationId!,
+                                isAdmin: true,
                               ),
                             ),
                           );
