@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
@@ -15,16 +16,26 @@ class ForumPostScreen extends StatefulWidget {
 
 class _ForumPostScreenState extends State<ForumPostScreen> {
   final TextEditingController _commentController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> _addComment() async {
     String comment = _commentController.text.trim();
     if (comment.isEmpty) return;
+
+    User? user = _auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must be logged in to comment')),
+      );
+      return;
+    }
 
     await FirebaseFirestore.instance
         .collection('forum_posts')
         .doc(widget.postId)
         .collection('comments')
         .add({
+      'userId': user.uid,
       'anonymousName': "Anonymous User",
       'content': comment,
       'timestamp': FieldValue.serverTimestamp(),
