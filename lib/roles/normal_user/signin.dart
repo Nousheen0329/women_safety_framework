@@ -71,7 +71,7 @@ class _SigninState extends State<Signin> {
             ),
             child: Column(
               children: <Widget>[
-                logoWidget("assets/images/logo1.png"),
+                logoWidget("assets/logo1.png"),
                 const SizedBox(height: 30),
                 reusableTextField(
                   "Email ID",
