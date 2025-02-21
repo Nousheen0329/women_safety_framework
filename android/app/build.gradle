@@ -8,12 +8,16 @@ plugins {
 
 android {
     namespace = "com.example.women_safety_framework"
-    compileSdk = 34
+    compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
-
+    aaptOptions.cruncherEnabled = false
+    aaptOptions.useNewCruncher = false
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
 
     kotlinOptions {
