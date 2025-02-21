@@ -178,7 +178,7 @@ class _HomeState extends State<Home> {
         child: ElevatedButton(
           onPressed: () {
             Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (context) => LandingPage()));
+                MaterialPageRoute(builder: (context) => HomeScreen()));
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: hexStringToColor("CB2B93"),
