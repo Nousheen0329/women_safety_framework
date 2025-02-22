@@ -2,69 +2,111 @@ import 'package:flutter/material.dart';
 import 'package:background_sms/background_sms.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:convert';
+
+import 'customizeEmergencyAlert.dart';
 
 class SafeHome extends StatefulWidget {
-  final List<String> contacts;
-  final Function(List<String>) updateContacts; // Callback function to update contacts
-
-  SafeHome({Key? key, required this.contacts, required this.updateContacts}) : super(key: key);
-
+  SafeHome({Key? key}) : super(key: key);
   @override
   _SafeHomeState createState() => _SafeHomeState();
 }
 
 class _SafeHomeState extends State<SafeHome> {
-  final TextEditingController _contactController = TextEditingController(); // Declare the controller
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  List<String> _contacts = [];
+  bool isSendingSOS = false;
 
   @override
-  void dispose() {
-    _contactController.dispose(); // Dispose controller to free resources
-    super.dispose();
+  void initState() {
+    super.initState();
+    _loadContacts(); // Load contacts on startup
   }
 
-  // Method to get current location
-  Future<Position> _getCurrentLocation() async {
-    return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-  }
 
-  // Request SMS permission
-  Future<void> requestSMSPermission() async {
-    if (await Permission.sms.isDenied) {
-      await Permission.sms.request();
+
+  // Load contacts securely
+  Future<void> _loadContacts() async {
+    String? storedContacts = await _secureStorage.read(key: "emergency_contacts");
+    if (storedContacts != null && storedContacts.isNotEmpty) {
+      setState(() {
+        _contacts = List<String>.from(jsonDecode(storedContacts));
+      });
     }
   }
 
-  // Send SOS alert with location
-  Future<void> sendSOSAlert(Position position) async {
-    String locationUrl = "https://www.google.com/maps?q=${position.latitude},${position.longitude}";
-    String message = "I am in danger! Please help. My location: $locationUrl";
+  Future<Position?> _getCurrentLocation() async {
+    LocationPermission permission = await Geolocator.checkPermission();
 
-    for (String contact in widget.contacts) {
-      SmsStatus result = await BackgroundSms.sendMessage(phoneNumber: contact, message: message);
-
-      if (result == SmsStatus.sent) {
-        print("SMS sent successfully to $contact");
-      } else {
-        print("Failed to send SMS to $contact");
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        Fluttertoast.showToast(msg: "Location permission denied.");
+        return null;
       }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      Fluttertoast.showToast(msg: "Location permission permanently denied. Please enable from settings to send location.");
+      openAppSettings();
+      return null;
+    }
+    return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  }
 
+  Future<void> requestSMSPermission() async {
+    PermissionStatus status = await Permission.sms.status;
+    if (status.isDenied) {
+      Fluttertoast.showToast(msg: "SMS permission denied.");
+      await Permission.sms.request();
+    } else if (status.isPermanentlyDenied) {
+    openAppSettings();
+  }
+  }
+
+  Future<void> sendSOSAlert() async {
+    if (_contacts.isEmpty) {
+      Fluttertoast.showToast(msg: "No emergency contacts added.");
+      return;
+    }
+    Position? position = await _getCurrentLocation();
+    String locationUrl = "";
+    if(position!=null){
+      locationUrl = "https://www.google.com/maps?q=${position.latitude},${position.longitude}";
+    }
+    else{
+      Fluttertoast.showToast(msg: "Location was not read.");
+      return;
+    }
+
+    String message = "I am in danger! Please help. My location: $locationUrl.\n";
+    setState(() {
+      isSendingSOS = true;
+    });
+    for (String contact in _contacts) {
+      SmsStatus result = await BackgroundSms.sendMessage(phoneNumber: contact, message: message);
+      if (result == SmsStatus.sent) {
+        Fluttertoast.showToast(msg: "SOS alert sent to contact ${contact}");
+      } else {
+        Fluttertoast.showToast(msg: "Alert not sent to contact ${contact}, please try again");
+      }
       await Future.delayed(Duration(milliseconds: 5000)); // Add delay
     }
-
-    Fluttertoast.showToast(msg: "SOS alerts sent!");
+    setState(() {
+      isSendingSOS = false; // ✅ Hide loading indicator
+    });
   }
 
-  // Add a new contact
-  void _addContact() {
-    String newContact = _contactController.text.trim();
-    if (newContact.isNotEmpty) {
+  Future<void> _navigateToCustomizeAlert() async {
+    final updatedContacts = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CustomizeAlertPage()),
+    );
+    if (updatedContacts != null) {
       setState(() {
-        List<String> updatedContacts = List.from(widget.contacts)..add(newContact);
-        widget.updateContacts(updatedContacts);
-        _contactController.clear();
+        _contacts = updatedContacts;
       });
     }
   }
@@ -76,65 +118,55 @@ class _SafeHomeState extends State<SafeHome> {
         InkWell(
           onTap: () async {
             await requestSMSPermission();
-            Position position = await _getCurrentLocation();
-            sendSOSAlert(position);
+            sendSOSAlert();
           },
           child: Card(
             elevation: 5,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             child: Container(
-              height: 180,
+              height: 150,
               width: MediaQuery.of(context).size.width * 0.8,
-              child: Row(
+              child: isSendingSOS ? Row(
+                children: [
+                  CircularProgressIndicator(),
+                  Text("Sending SOS..."),
+                  ],
+                  )
+                : Row(
                 children: [
                   Expanded(
                     child: ListTile(
-                      title: Text("Send Location alert"),
-
+                      title: Text(
+                          "Send Location Alert",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          )
+                      ),
                     ),
                   ),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: Image.asset('assets/route.jpg', fit: BoxFit.cover, height: 180),
+                    child: Image.asset('assets/route.jpg', fit: BoxFit.contain, height: 150, ),
                   ),
                 ],
               ),
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              TextField(
-                controller: _contactController,
-                decoration: InputDecoration(
-                  labelText: "Add Emergency Contact",
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: _addContact,
-                child: Text("Add Contact"),
-              ),
-            ],
-          ),
-        ),
-        ListView.builder(
-          shrinkWrap: true,
-          itemCount: widget.contacts.length,
-          itemBuilder: (context, index) => ListTile(
-            title: Text(widget.contacts[index]),
-            trailing: IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              onPressed: () {
-                setState(() {
-                  List<String> updatedContacts = List.from(widget.contacts)..removeAt(index);
-                  widget.updateContacts(updatedContacts);
-                });
-              },
+        InkWell(
+          onTap: () async {
+            await _navigateToCustomizeAlert();
+          },
+          child: Card(
+            elevation: 5,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: Container(
+              height: 50,
+              width: MediaQuery.of(context).size.width * 0.8,
+              alignment: Alignment.center,
+              child: Text("Customize Emergency Alert", style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w500)),
             ),
           ),
         ),

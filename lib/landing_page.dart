@@ -41,14 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
     getRandomQuote();
   }
 
-  List<String> contacts = [];
-
-  void updateContacts(List<String> updatedContacts) {
-    setState(() {
-      contacts = updatedContacts;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,35 +92,34 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Carousel Section
                   CustomCarousel(), // Fixed name
 
-                  // Emergency Section
+                  SizedBox(height: 10),
+                  SafeHome(),
+
+                  SizedBox(height: 10),
                   _buildSectionTitle("Emergency"),
                   Emergency(),
 
-                  // Explore LiveSafe Locations Section
+                  SizedBox(height: 10),
                   _buildSectionTitle("Explore Livesafe Locations"),
                   LiveSafe(),
-                  SafeHome(contacts: contacts, updateContacts: updateContacts),
 
-                  // Spacer removed, replaced with SizedBox
-                  SizedBox(height: 20),
-
-                  // Sign-in Buttons Section
+                  SizedBox(height: 10),
                   _buildSectionTitle("Sign In Options"),
-                  SizedBox(height: 20),
+
                   firebaseUIButton(context, "Sign in as Normal User", () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => Signin()),
                     );
                   }),
-                  SizedBox(height: 20),
+
                   firebaseUIButton(context, "Sign in as Organization Admin", () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => AdminSignin()),
                     );
                   }),
-                  SizedBox(height: 20),
+
                   firebaseUIButton(context, "Sign in as Working Woman", () {
                     Navigator.push(
                       context,

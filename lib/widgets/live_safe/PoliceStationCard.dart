@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart'; // Import Geolocator package for current location
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter/cupertino.dart';
 
+import '../home_widgets/safewebview.dart';
+
+void navigateToRoute(BuildContext context, Widget route) {
+  Navigator.push(context, CupertinoPageRoute(builder: (context) => route));
+}
 class PoliceStationCard extends StatelessWidget {
   final Future<void> Function(String, String, Position) onMapFunction;  // Modified to accept Position
   final Future<List<Map<String, String>>> policeStationsFuture;
@@ -33,15 +39,13 @@ class PoliceStationCard extends StatelessWidget {
                   elevation: 5,
                   margin: EdgeInsets.symmetric(vertical: 8),
                   child: ListTile(
-                    title: Text('Police Station'),
+                    title: Text(station['name']!),
                     subtitle: Text('Lat: ${station['latitude']}, Lng: ${station['longitude']}'),
                     trailing: IconButton(
                       icon: Icon(Icons.map),
                       onPressed: () async {
                         // Fetch current position from Geolocator
                         Position currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-
-                        // Pass latitude, longitude, and current position to onMapFunction
                         String latitude = station['latitude']!;
                         String longitude = station['longitude']!;
                         onMapFunction(latitude, longitude, currentPosition);

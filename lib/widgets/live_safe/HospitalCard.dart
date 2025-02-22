@@ -33,15 +33,14 @@ class HospitalCard extends StatelessWidget {
                   elevation: 5,
                   margin: EdgeInsets.symmetric(vertical: 8),
                   child: ListTile(
-                    title: Text('Hospital'),
+                    title: Text(hospital['name']!),
                     subtitle: Text('Lat: ${hospital['latitude']}, Lng: ${hospital['longitude']}'),
                     trailing: IconButton(
                       icon: Icon(Icons.map),
                       onPressed: () async {
+
                         // Fetch current position from Geolocator
                         Position currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-
-                        // Pass latitude, longitude, and current position to onMapFunction
                         String latitude = hospital['latitude']!;
                         String longitude = hospital['longitude']!;
                         onMapFunction(latitude, longitude, currentPosition);
