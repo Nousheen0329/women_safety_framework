@@ -52,6 +52,8 @@ dependencies:
   background_sms: ^0.0.4
   permission_handler: ^11.4.0
   animate_do: ^3.0.2
+  flutter_secure_storage: ^9.2.4
+  location_picker_flutter_map: ^3.1.0
 
 dev_dependencies:
   flutter_test:
