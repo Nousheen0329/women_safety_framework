@@ -5,6 +5,8 @@ import 'package:women_safety_framework/landing_page.dart';
 import 'package:women_safety_framework/roles/normal_user/forum/forum_home.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
 
+import '../secureStorageService.dart';
+
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -176,7 +178,8 @@ class _HomeState extends State<Home> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
+            await SecureStorageService().clearUserData("normal_uid");
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => HomeScreen()));
           },

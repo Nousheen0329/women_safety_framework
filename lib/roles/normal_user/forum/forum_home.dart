@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
+import '../../../landing_page.dart';
+import '../../secureStorageService.dart';
 import 'new_post.dart';
 import 'add_comment.dart';
 
@@ -69,6 +71,24 @@ class ForumScreen extends StatelessWidget {
           color: Colors.white, // Set the icon color to white
         ),
         backgroundColor: hexStringToColor("9546C4"),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ElevatedButton(
+          onPressed: () async {
+            await SecureStorageService().clearUserData("normal_uid");
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => HomeScreen()));
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: hexStringToColor("CB2B93"),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          ),
+          child: const Text("Logout",
+              style: TextStyle(color: Colors.white, fontSize: 16)),
+        ),
       ),
     );
   }

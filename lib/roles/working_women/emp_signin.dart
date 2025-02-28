@@ -5,6 +5,9 @@ import 'package:women_safety_framework/roles/working_women/emp_signup.dart';
 import 'package:women_safety_framework/roles/working_women/emp_home.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
 
+import '../../reusable_widgets/buttons.dart';
+import '../secureStorageService.dart';
+
 class EmpSignin extends StatefulWidget {
   const EmpSignin({super.key});
 
@@ -36,6 +39,7 @@ class _EmpSigninState extends State<EmpSignin> {
         email: email,
         password: password,
       );
+      SecureStorageService().saveUserData("working_woman_uid", userCredential.user!.uid);
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -80,7 +84,7 @@ class _EmpSigninState extends State<EmpSignin> {
               const SizedBox(
                 height: 5,
               ),
-              firebaseUIButton(context, "Sign In", signInUser),
+              CustomButton(text: "Sign In", onPressed: signInUser),
               signUpOption(),
             ],
           ),

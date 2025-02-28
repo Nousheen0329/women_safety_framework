@@ -5,6 +5,8 @@ import 'package:women_safety_framework/roles/working_women/emp_signin.dart';
 import 'package:women_safety_framework/roles/workplace_policies.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
 
+import '../secureStorageService.dart';
+
 class HomeScreen extends StatefulWidget {
   final String userId;
 
@@ -98,7 +100,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _logout() {
+  void _logout() async {
+    await SecureStorageService().clearUserData("working_woman_uid");
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => EmpSignin()),

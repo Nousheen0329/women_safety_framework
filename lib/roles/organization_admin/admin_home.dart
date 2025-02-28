@@ -8,6 +8,9 @@ import 'package:women_safety_framework/roles/workplace_policies.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
 import 'package:women_safety_framework/roles/organization_admin/admin_signin.dart';
 
+import '../secureStorageService.dart';
+import 'editGeofencingOrganization.dart';
+
 class HomeScreen extends StatefulWidget {
   final String adminId;
   const HomeScreen({Key? key, required this.adminId}) : super(key: key);
@@ -384,6 +387,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              SizedBox(height:10),
+              organizationId == null || organizationId!.isEmpty
+              ? Center(child: CircularProgressIndicator())
+              : GeofencingWidgetOrganization(organizationId: organizationId),
             ],
           ),
         ),
@@ -397,7 +404,8 @@ class _HomeScreenState extends State<HomeScreen> {
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
           ),
-          onPressed: () {
+          onPressed: () async {
+            await SecureStorageService().clearUserData("org_admin_uid");
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => AdminSignin()));
           },
