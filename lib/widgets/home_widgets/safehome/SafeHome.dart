@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 
+import '../../../reusable_widgets/textStyles.dart';
 import 'customizeEmergencyAlert.dart';
 
 class SafeHome extends StatefulWidget {
@@ -81,7 +82,7 @@ class _SafeHomeState extends State<SafeHome> {
       return;
     }
 
-    String message = "I am in danger! Please help. My location: $locationUrl.\n";
+    String message = "You have received an SOS. This is an emergency alert. My location: $locationUrl.\n";
     setState(() {
       isSendingSOS = true;
     });
@@ -127,9 +128,11 @@ class _SafeHomeState extends State<SafeHome> {
               height: 150,
               width: MediaQuery.of(context).size.width * 0.8,
               child: isSendingSOS ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircularProgressIndicator(),
-                  Text("Sending SOS..."),
+                  SizedBox(width: 20),
+                  normalText("Sending SOS..."),
                   ],
                   )
                 : Row(
@@ -166,7 +169,7 @@ class _SafeHomeState extends State<SafeHome> {
               height: 50,
               width: MediaQuery.of(context).size.width * 0.8,
               alignment: Alignment.center,
-              child: Text("Customize Emergency Alert", style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w500)),
+              child: Text("Customize Emergency Alert", style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.deepPurple)),
             ),
           ),
         ),

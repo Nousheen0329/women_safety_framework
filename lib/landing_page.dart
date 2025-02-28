@@ -1,19 +1,21 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart'; // For animation effects
-import 'widgets/home_widgets/custom_appBar.dart';
+import 'package:women_safety_framework/reusable_widgets/buttons.dart';
+import 'package:women_safety_framework/roles/normal_user/forum/forum_home.dart';
+import 'package:women_safety_framework/roles/normal_user/home.dart';
 import 'utils/quotes.dart';
 import 'widgets/home_widgets/CustomCarousel.dart'; // Fixed typo
 import 'widgets/home_widgets/emergency.dart';
 import 'widgets/live_safe.dart';
-import 'widgets/emergency_contacts.dart';
 import 'package:women_safety_framework/roles/normal_user/signin.dart';
 import 'package:women_safety_framework/roles/organization_admin/admin_signin.dart';
 import 'package:women_safety_framework/roles/working_women/emp_signin.dart';
 import 'widgets/home_widgets/safehome/SafeHome.dart';
-import 'package:women_safety_framework/reusable_widgets/reusable_widgets.dart';
-import 'package:women_safety_framework/utils/color_utils.dart';
+import 'package:women_safety_framework/roles/working_women/emp_home.dart' as HomeScreenWorkingWoman;
+import 'package:women_safety_framework/roles/organization_admin/admin_home.dart' as HomeScreenOrganizationAdmin;
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -22,7 +24,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int qIndex = 0;
-
+  final FlutterSecureStorage _storage = FlutterSecureStorage();
   // Generate a random quote index
   void getRandomQuote() {
     Random random = Random();
@@ -83,14 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // Quote Section (Uncomment if working)
-                  // QuoteCard(
-                  //   quoteIndex: qIndex,
-                  //   onTap: getRandomQuote,
-                  // ),
-
                   // Carousel Section
-                  CustomCarousel(), // Fixed name
+                  CustomCarousel(),
 
                   SizedBox(height: 10),
                   SafeHome(),
@@ -106,26 +102,57 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(height: 10),
                   _buildSectionTitle("Sign In Options"),
 
-                  firebaseUIButton(context, "Sign in as Normal User", () {
+                  CustomButton(text:"Sign in to Anonymous Forum", onPressed: () async {
+                    String? uid = await _storage.read(key: 'normal_uid');
+                    if(uid!=null){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ForumScreen()),
+                      );
+                    }
+                    else{
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Signin()),
+                      );
+                    }
+                    }
+                  ),
+
+                  CustomButton(text: "Sign in as Working Woman", onPressed: () async {
+                  String? uid = await _storage.read(key: 'working_woman_uid');
+                  if(uid!=null){
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => Signin()),
+                      MaterialPageRoute(builder: (context) => HomeScreenWorkingWoman.HomeScreen(userId: uid)),
                     );
-                  }),
-
-                  firebaseUIButton(context, "Sign in as Organization Admin", () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AdminSignin()),
-                    );
-                  }),
-
-                  firebaseUIButton(context, "Sign in as Working Woman", () {
+                  }
+                  else{
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => EmpSignin()),
                     );
-                  }),
+                  }
+                  }
+                  ),
+
+                  CustomButton(text: "Sign in as Organization Admin", onPressed: () async {
+                    String? uid = await _storage.read(key: 'org_admin_uid');
+                    if(uid!=null){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomeScreenOrganizationAdmin.HomeScreen(adminId: uid)),
+                      );
+                    }
+                    else{
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AdminSignin()),
+                      );
+                    }
+                  }
+                  ),
+
                   SizedBox(height: 30),
                 ],
               ),

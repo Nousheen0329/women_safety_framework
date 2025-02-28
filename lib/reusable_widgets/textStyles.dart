@@ -61,3 +61,20 @@ Widget buildSettingItem(IconData icon, String title, String value) {
     ),
   );
 }
+
+Text normalText(String text){
+  return Text(text,
+    style: GoogleFonts.poppins(
+      fontSize: 15,
+      fontWeight: FontWeight.w500,
+      color: Colors.white,
+      shadows: [
+        Shadow(
+          offset: Offset(2.0, 2.0),
+          blurRadius: 5.0,
+          color: Colors.black.withOpacity(0.5),
+        ),
+      ],
+    ),
+  );
+}

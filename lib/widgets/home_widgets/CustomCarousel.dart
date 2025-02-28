@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:women_safety_framework/utils/quotes.dart';
 import 'package:women_safety_framework/widgets/home_widgets/safewebview.dart';
 
+import '../../reusable_widgets/textStyles.dart';
+
 class CustomCarousel extends StatelessWidget {
   const CustomCarousel({Key? key}) : super(key: key);
 
@@ -75,14 +77,7 @@ class CustomCarousel extends StatelessWidget {
                     alignment: Alignment.bottomLeft,
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 8, left: 8),
-                      child: Text(
-                        articleTitle[index],
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontSize: MediaQuery.of(context).size.width * 0.05,
-                        ),
-                      ),
+                      child: normalText(articleTitle[index]),
                     ),
                   ),
                 ),

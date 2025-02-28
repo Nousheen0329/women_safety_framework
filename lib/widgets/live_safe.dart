@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'live_safe/PoliceStationCard.dart'; // Assuming you have this card widget for each location.
@@ -161,6 +162,12 @@ class _LiveSafeState extends State<LiveSafe> {
         child: Column(
           children: [
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                alignment: Alignment.center,
+                minimumSize: Size(MediaQuery.of(context).size.width, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),)
+              ),
               onPressed: () async {
                 Position position = await _getCurrentLocation();
                 findNearbyPoliceStations(position);
@@ -170,10 +177,15 @@ class _LiveSafeState extends State<LiveSafe> {
                 children: [
                   Image.asset(
                     'assets/bus-stop.png',
-                    height: 32,
+                    height: 30,
                   ),
                   SizedBox(width: 8), // Add some space between the image and text
-                  Text('Find Nearby Police Stations'),
+                  Text('Find Nearby Police Stations',
+                    style: GoogleFonts.poppins(
+                        fontSize: 14.3,
+                        fontWeight: FontWeight.w500
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -185,9 +197,13 @@ class _LiveSafeState extends State<LiveSafe> {
             SizedBox(height: 20),
             ...policeStations,
 
-            SizedBox(height: 20),
-
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  alignment: Alignment.center,
+                  minimumSize: Size(MediaQuery.of(context).size.width, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),)
+              ),
               onPressed: () async {
                 Position position = await _getCurrentLocation();
                 findNearbyHospitals(position);
@@ -197,10 +213,15 @@ class _LiveSafeState extends State<LiveSafe> {
                 children: [
                   Image.asset(
                     'assets/hospital.png',
-                    height: 32,
+                    height: 30,
                   ),
                   SizedBox(width: 8), // Add some space between the image and text
-                  Text('Find Nearby Hospitals near by'),
+                  Text('Find Nearby Hospitals',
+                    style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500
+                    ),
+                  ),
                 ],
               ),
             ),

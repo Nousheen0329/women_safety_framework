@@ -1,7 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 
-class PoliceEmergency extends StatelessWidget {
+class EmergencyCard extends StatelessWidget {
+  final String title;
+  final String information;
+  final String number;
+  final String hyphenated;
+  final String imagePath;
+
+  const EmergencyCard({
+    Key? key,
+    required this.title,
+    required this.information,
+    required this.number,
+    required this.hyphenated,
+    required this.imagePath
+  }) : super(key: key);
+
   _callNumber(String number) async {
     await FlutterPhoneDirectCaller.callNumber(number);
   }
@@ -16,7 +31,7 @@ class PoliceEmergency extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
         ),
         child: InkWell(
-          onTap: () => _callNumber('15'),
+          onTap: () => _callNumber(number),
           child: Container(
             height: 180,
             width: MediaQuery.of(context).size.width * 0.7,
@@ -39,7 +54,7 @@ class PoliceEmergency extends StatelessWidget {
                   CircleAvatar(
                     radius: 25,
                     backgroundColor: Colors.white.withOpacity(0.5),
-                    child: Image.asset('assets/alert.png'),
+                    child: Image.asset(imagePath, height: 40, alignment: Alignment.center),
                   ),
                   Expanded(
                     child: Column(
@@ -47,7 +62,7 @@ class PoliceEmergency extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Active Emergency',
+                          title,
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -55,7 +70,7 @@ class PoliceEmergency extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'call 0-1-5 for emergencies',
+                          information,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: MediaQuery.of(context).size.width * 0.045,
@@ -70,12 +85,12 @@ class PoliceEmergency extends StatelessWidget {
                           ),
                           child: Center(
                             child: Text(
-                              '0-1-5',
+                              hyphenated,
                               style: TextStyle(
                                 color: Colors.red[300],
                                 fontWeight: FontWeight.bold,
                                 fontSize:
-                                MediaQuery.of(context).size.width * 0.055,
+                                MediaQuery.of(context).size.width * 0.05,
                               ),
                             ),
                           ),
