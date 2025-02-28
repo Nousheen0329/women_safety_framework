@@ -16,32 +16,59 @@ class _EmpSignupState extends State<EmpSignup> {
   TextEditingController _passwordTextController = TextEditingController();
   TextEditingController _employeeIDTextController = TextEditingController();
   TextEditingController _phoneNumberTextController = TextEditingController();
-  TextEditingController _organizationNameTextController =
-      TextEditingController();
-  TextEditingController _organizationIDTextController = TextEditingController();
-  TextEditingController _emailTextController = TextEditingController();
+  TextEditingController _EmailTextController = TextEditingController();
   TextEditingController _userNameTextController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  String? _selectedOrganization;
+  String? _selectedOrganizationId;
+  List<Map<String, String>> _organizations = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrganizations();
+  }
+
+  Future<void> _fetchOrganizations() async {
+    try {
+      QuerySnapshot querySnapshot =
+          await _firestore.collection("organization").get();
+
+      List<Map<String, String>> orgs = querySnapshot.docs.map((doc) {
+        return {
+          "name": doc["organization_name"].toString(),
+          "id": doc.id.toString(),
+        };
+      }).toList();
+
+      setState(() {
+        _organizations = orgs;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Error fetching organizations: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   Future<void> _signUpUser() async {
-    String email = _emailTextController.text.trim();
+    String email = _EmailTextController.text.trim();
     String password = _passwordTextController.text.trim();
-    String orgId = _organizationIDTextController.text.trim();
-    String orgName = _organizationNameTextController.text.trim();
+
+    if (_selectedOrganizationId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please select an organization!")),
+      );
+      return;
+    }
 
     try {
-      DocumentSnapshot orgSnapshot =
-          await _firestore.collection("organization").doc(orgId).get();
-
-      if (!orgSnapshot.exists) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Organization ID does not exist!")),
-        );
-        return;
-      }
-
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -52,8 +79,8 @@ class _EmpSignupState extends State<EmpSignup> {
         "name": _userNameTextController.text.trim(),
         "employee_id": _employeeIDTextController.text.trim(),
         "phone_number": _phoneNumberTextController.text.trim(),
-        "organization_name": orgName,
-        "organization_id": orgId,
+        "organization_name": _selectedOrganization,
+        "organization_id": _selectedOrganizationId,
         "email": email,
         "uid": userCredential.user!.uid,
         "created_at": FieldValue.serverTimestamp(),
@@ -114,44 +141,69 @@ class _EmpSignupState extends State<EmpSignup> {
             padding: EdgeInsets.fromLTRB(20, 120, 20, 0),
             child: Column(
               children: <Widget>[
-                const SizedBox(
-                  height: 20,
-                ),
+                const SizedBox(height: 20),
                 reusableTextField("Employee Name", Icons.person_outline, false,
                     _userNameTextController),
-                const SizedBox(
-                  height: 20,
-                ),
+                const SizedBox(height: 20),
                 reusableTextField("Employee ID", Icons.badge, false,
                     _employeeIDTextController),
-                const SizedBox(
-                  height: 20,
-                ),
+                const SizedBox(height: 20),
                 reusableTextField("Phone Number", Icons.phone, false,
                     _phoneNumberTextController),
-                const SizedBox(
-                  height: 20,
-                ),
-                reusableTextField("Organization Name", Icons.business, false,
-                    _organizationNameTextController),
-                const SizedBox(
-                  height: 20,
-                ),
-                reusableTextField("Organization ID", Icons.confirmation_number,
-                    false, _organizationIDTextController),
-                const SizedBox(
-                  height: 20,
-                ),
-                reusableTextField("Email Id", Icons.person_outline, false,
-                    _emailTextController),
-                const SizedBox(
-                  height: 20,
-                ),
+                const SizedBox(height: 20),
+                _isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : DropdownButtonFormField<String>(
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white.withAlpha(50),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide(color: Colors.white70),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide(color: Colors.white70),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                        ),
+                        dropdownColor: Colors.grey.shade900.withAlpha(240),
+                        style: TextStyle(color: Colors.white),
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.white),
+                        value: (_selectedOrganizationId != null &&
+                                _selectedOrganizationId!.isNotEmpty)
+                            ? _selectedOrganizationId
+                            : null,
+                        isExpanded: true,
+                        hint: Text("Select Organization",
+                            style: TextStyle(color: Colors.white70)),
+                        items: _organizations.map((org) {
+                          return DropdownMenuItem<String>(
+                            value: org["id"],
+                            child: Text("${org["name"]} (${org["id"]})",
+                                style: TextStyle(color: Colors.white)),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedOrganizationId = value;
+                            _selectedOrganization = _organizations.firstWhere(
+                                (org) => org["id"] == value)["name"];
+                          });
+                        },
+                      ),
+                const SizedBox(height: 20),
+                reusableTextField("Email ID", Icons.email_outlined, false,
+                    _EmailTextController),
+                const SizedBox(height: 20),
                 reusableTextField("Password", Icons.lock_outlined, true,
                     _passwordTextController),
-                const SizedBox(
-                  height: 20,
-                ),
+                const SizedBox(height: 20),
                 firebaseUIButton(context, "Sign Up", _signUpUser),
               ],
             ),
