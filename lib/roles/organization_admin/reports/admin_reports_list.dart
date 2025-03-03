@@ -40,7 +40,7 @@ class AdminReportsList extends StatelessWidget {
                 margin: const EdgeInsets.all(10),
                 child: ListTile(
                   title: Text(reportData['title']),
-                  subtitle: Text("Status: ${reportData['status']}"),
+                  subtitle: Text("Status: ${reportData['status_message']}"),
                   trailing: reportData['status'] == "Pending"
                       ? const Icon(Icons.warning, color: Colors.red)
                       : const Icon(Icons.autorenew, color: Colors.green),

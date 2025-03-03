@@ -16,11 +16,12 @@ class UpdateReportStatus extends StatefulWidget {
 }
 
 class _UpdateReportStatusState extends State<UpdateReportStatus> {
-  final TextEditingController _statusController = TextEditingController();
+  final TextEditingController _statusMessageController =
+      TextEditingController();
   bool _isLoading = false;
 
-  void _updateStatus(String newStatus) async {
-    if (newStatus.isEmpty) return;
+  void _updateStatusMessage() async {
+    if (_statusMessageController.text.isEmpty) return;
 
     setState(() {
       _isLoading = true;
@@ -31,13 +32,41 @@ class _UpdateReportStatusState extends State<UpdateReportStatus> {
         .doc(widget.adminOrgId)
         .collection('reports')
         .doc(widget.reportId)
-        .update({"status": newStatus});
+        .update({
+      "status": "In Progress",
+      "status_message": _statusMessageController.text,
+    });
 
     setState(() {
       _isLoading = false;
     });
 
-    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Status updated successfully")),
+    );
+  }
+
+  void _markAsResolved() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    await FirebaseFirestore.instance
+        .collection('organization')
+        .doc(widget.adminOrgId)
+        .collection('reports')
+        .doc(widget.reportId)
+        .update({
+      "status": "Resolved",
+    });
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Report marked as Resolved")),
+    );
   }
 
   @override
@@ -54,10 +83,10 @@ class _UpdateReportStatusState extends State<UpdateReportStatus> {
           children: [
             const SizedBox(height: 10),
             TextField(
-              controller: _statusController,
+              controller: _statusMessageController,
               maxLines: 4,
               decoration: InputDecoration(
-                labelText: "Enter Status",
+                labelText: "Enter Status Message",
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -69,7 +98,7 @@ class _UpdateReportStatusState extends State<UpdateReportStatus> {
               child: _isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
-                      onPressed: () => _updateStatus(_statusController.text),
+                      onPressed: _updateStatusMessage,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                             vertical: 14, horizontal: 20),
@@ -88,7 +117,7 @@ class _UpdateReportStatusState extends State<UpdateReportStatus> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _updateStatus("Resolved"),
+        onPressed: _markAsResolved,
         icon: const Icon(Icons.check_circle, color: Colors.white),
         label: const Text("Mark as Resolved"),
         backgroundColor: Colors.green,

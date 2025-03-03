@@ -62,13 +62,16 @@ class ReportList extends StatelessWidget {
                 itemBuilder: (context, index) {
                   var reportData =
                       reports[index].data() as Map<String, dynamic>;
+                  bool isResolved = reportData['status'] == "Resolved";
 
                   return Card(
                     margin: const EdgeInsets.all(10),
                     child: ListTile(
                       title: Text(reportData['title']),
-                      subtitle: Text("Status: ${reportData['status']}"),
-                      trailing: const Icon(Icons.arrow_forward),
+                      subtitle: Text("Status: ${reportData['status_message']}"),
+                      trailing: isResolved
+                          ? const Icon(Icons.check_circle, color: Colors.green)
+                          : const Icon(Icons.arrow_forward),
                       onTap: () {
                         Navigator.push(
                           context,

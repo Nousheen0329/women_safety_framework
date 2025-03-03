@@ -54,6 +54,7 @@ class _ReportDetailsState extends State<ReportDetails> {
         "accused_details": _accusedDetailsController.text.trim(),
         "priority_level": _priority,
         "status": "Pending",
+        "status_message": "Report Received.",
         "created_at": FieldValue.serverTimestamp(),
       };
 

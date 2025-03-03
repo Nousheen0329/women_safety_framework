@@ -7,6 +7,9 @@ class ReportStatusScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Color statusMessageColor =
+        (reportData['status'] == "Resolved") ? Colors.green : Colors.red;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Report Details"),
@@ -34,10 +37,33 @@ class ReportStatusScreen extends StatelessWidget {
             ),
             Text(reportData['accused_details']),
             const SizedBox(height: 10),
+            const Text(
+              "Status:",
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
+            ),
             Text(
-              "Status: ${reportData['status']}",
-              style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
+              reportData['status'],
+              style: const TextStyle(fontSize: 16, color: Colors.black),
+            ),
+            const SizedBox(height: 10),
+            RichText(
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: statusMessageColor,
+                ),
+                children: [
+                  const TextSpan(text: "Status Message: "),
+                  TextSpan(
+                    text:
+                        reportData['status_message'] ?? "No message available",
+                  ),
+                ],
+              ),
             ),
           ],
         ),

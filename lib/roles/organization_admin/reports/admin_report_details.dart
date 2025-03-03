@@ -33,7 +33,7 @@ class AdminReportDetails extends StatelessWidget {
 
           var reportData = snapshot.data!.data() as Map<String, dynamic>;
 
-          return Padding(
+          return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,12 +56,50 @@ class AdminReportDetails extends StatelessWidget {
                 const SizedBox(height: 8),
                 _buildDetailRow("Title:", reportData['title']),
                 _buildDetailRow("Description:", reportData['description']),
-                _buildDetailRow(
-                    "Accused Details:", reportData['accused_details']),
+                const Text(
+                  "Accused Details:",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0, top: 4.0),
+                  child: Text(
+                    reportData['accused_details'] ?? "Not Available",
+                    style: const TextStyle(fontSize: 16, color: Colors.black),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 _buildDetailRow(
                     "Priority Level:", reportData['priority_level']),
-                _buildDetailRow("Status:", reportData['status'],
-                    color: Colors.red),
+                const Text(
+                  "Status:",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0, top: 4.0),
+                  child: Text(
+                    reportData['status'],
+                    style: const TextStyle(fontSize: 16, color: Colors.black),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red),
+                    children: [
+                      const TextSpan(text: "Status Message: "),
+                      TextSpan(
+                        text: reportData['status_message'] ??
+                            "No message available",
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 20),
                 Center(
                   child: ElevatedButton(
@@ -87,8 +125,7 @@ class AdminReportDetails extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, dynamic value,
-      {Color color = Colors.black}) {
+  Widget _buildDetailRow(String label, dynamic value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: RichText(
@@ -101,7 +138,7 @@ class AdminReportDetails extends StatelessWidget {
             ),
             TextSpan(
               text: " ${value ?? 'Not Available'}",
-              style: TextStyle(fontWeight: FontWeight.normal, color: color),
+              style: const TextStyle(fontWeight: FontWeight.normal),
             ),
           ],
         ),
