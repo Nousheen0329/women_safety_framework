@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:women_safety_framework/roles/organization_admin/working_woman_details.dart';
+import 'package:women_safety_framework/roles/organization_admin/reports/admin_reports_list.dart';
+import 'package:women_safety_framework/roles/organization_admin/working%20women/working_women_list.dart';
 import 'package:women_safety_framework/roles/workplace_policies.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
 import 'package:women_safety_framework/roles/organization_admin/admin_signin.dart';
@@ -195,72 +196,64 @@ class _HomeScreenState extends State<HomeScreen> {
                       : "${organizationName!} (${organizationId ?? "Fetching..."})"),
                 ),
               ),
-              const SizedBox(height: 20),
-              const Text(
-                "Working Women in Your Organization",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              organizationId == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('working_women')
-                          .where('organization_id', isEqualTo: organizationId)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                          return const Text("No working women found.");
-                        }
-
-                        var workingWomen = snapshot.data!.docs;
-
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: workingWomen.length,
-                          itemBuilder: (context, index) {
-                            var woman = workingWomen[index];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 6),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              color: hexStringToColor("9546C4"),
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: Colors.white,
-                                  child: Icon(Icons.person,
-                                      color: hexStringToColor("5E61F4")),
-                                ),
-                                title: Text(
-                                  woman['name'] ?? 'Unknown',
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                                subtitle: Text(
-                                  woman['email'] ?? 'No email',
-                                  style: const TextStyle(color: Colors.white70),
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => WorkingWomanDetails(
-                                          womanId: woman.id),
-                                    ),
-                                  );
-                                },
-                              ),
-                            );
-                          },
-                        );
-                      },
+              const SizedBox(height: 16),
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            WorkingWomenList(organizationId: organizationId!),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.people, color: Colors.white, size: 28),
+                  label: const Text(
+                    "Working Women in Your Organization",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: hexStringToColor("CB2B93"),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 14, horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
                     ),
+                    minimumSize: const Size(250, 50),
+                    alignment: Alignment.center,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.report, color: Colors.white),
+                  label: const Text(
+                    "View Reports",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: hexStringToColor("CB2B93"),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 14, horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AdminReportsList(adminOrgId: organizationId!),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -300,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     ElevatedButton.icon(
                       onPressed: isUploading ? null : _uploadWorkplacePolicy,
                       icon: const Icon(Icons.upload_file, color: Colors.white),

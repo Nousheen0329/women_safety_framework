@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:women_safety_framework/roles/normal_user/home.dart';
+import 'package:women_safety_framework/roles/working_women/report/report_details.dart';
 import 'package:women_safety_framework/roles/working_women/emp_signin.dart';
+import 'package:women_safety_framework/roles/working_women/report/report_list.dart';
 import 'package:women_safety_framework/roles/workplace_policies.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
 
@@ -294,6 +296,58 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.report, color: Colors.white),
+                  label: Text(
+                    "Add a Report",
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: hexStringToColor("CB2B93"),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 14, horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              ReportDetails(userId: widget.userId)),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.list_alt, color: Colors.white),
+                  label: const Text(
+                    "Get Report Status",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: hexStringToColor("CB2B93"),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 14, horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ReportList(userId: widget.userId),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
