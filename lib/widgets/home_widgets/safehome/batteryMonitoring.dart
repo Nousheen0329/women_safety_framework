@@ -35,11 +35,8 @@ Future<void> checkBatteryLevel() async {
   // Get battery level
   int batteryLevel = await _battery.batteryLevel;
   print("Battery Level ${batteryLevel}");
-  if (batteryLevel <= 80 && batteryLevel>5) {
-    await sendEmergencyAlert("Battery Less than 10%.");
-  }
-  if (batteryLevel <= 5) {
-    await sendEmergencyAlert("Battery Less than 5%.");
+  if (batteryLevel <= 10 ) {
+    await sendEmergencyAlert("My phone's battery is less than 10%.");
   }
 }
 

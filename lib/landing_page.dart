@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart'; // For animation effects
@@ -40,7 +41,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _startBackgroundService();
     getRandomQuote();
+  }
+
+  void _startBackgroundService() {
+    final service = FlutterBackgroundService();
+    service.invoke("setAsForeground");
   }
 
   @override

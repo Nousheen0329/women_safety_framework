@@ -44,7 +44,7 @@ dependencies:
   flutter_phone_direct_caller: ^2.1.1
   url_launcher: ^6.3.1
   fluttertoast: ^8.2.10
-  geolocator: ^13.0.2
+  geolocator: 13.0.2
   geocoding: ^2.0.0
   background_sms: ^0.0.4
   permission_handler: ^11.4.0
@@ -52,6 +52,8 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   location_picker_flutter_map: ^3.1.0
   battery_plus: ^6.2.0
+  shake_detector: ^0.1.2
+  flutter_background_service: ^5.1.0
   workmanager:
     git:
       url: https://github.com/fluttercommunity/flutter_workmanager.git

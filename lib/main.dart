@@ -1,11 +1,19 @@
+import 'dart:convert';
+
+import 'package:background_sms/background_sms.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:women_safety_framework/splash_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:women_safety_framework/widgets/home_widgets/safehome/batteryMonitoring.dart';
+import 'package:women_safety_framework/widgets/home_widgets/safehome/SafeHome.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:shake_detector/shake_detector.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +29,7 @@ void main() async {
     isInDebugMode: true, // Set to false for production
   );
 
+  await initializeBackgroundService();
   final storage = FlutterSecureStorage();
   String? isEnabled = await storage.read(key: "battery_monitoring_enabled");
   if (isEnabled == "true") {
@@ -54,6 +63,94 @@ void callbackDispatcher() {
 
 void stopBatteryMonitoring() async {
   await Workmanager().cancelByUniqueName("battery_monitor_task");
+}
+
+Future<void> sendSOSAlert() async {
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  String? storedContacts = await _secureStorage.read(key: "emergency_contacts");
+  List<String> contacts = [];
+  if (storedContacts != null && storedContacts.isNotEmpty) {
+      contacts = List<String>.from(jsonDecode(storedContacts));
+  }
+  if (contacts.isEmpty) {
+    Fluttertoast.showToast(msg: "No emergency contacts added.");
+    return;
+  }
+  Position? position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  String locationUrl = "";
+  if(position!=null){
+    locationUrl = "https://www.google.com/maps?q=${position.latitude},${position.longitude}";
+  }
+  else{
+    Fluttertoast.showToast(msg: "Location was not read.");
+    return;
+  }
+
+  String message = "You have received an SOS. This is an emergency alert. My location: $locationUrl.\n";
+
+  for (String contact in contacts) {
+    SmsStatus result = await BackgroundSms.sendMessage(phoneNumber: contact, message: message);
+    if (result == SmsStatus.sent) {
+      Fluttertoast.showToast(msg: "SOS alert sent to contact ${contact}");
+    } else {
+      Fluttertoast.showToast(msg: "Alert not sent to contact ${contact}, please try again");
+    }
+    await Future.delayed(Duration(milliseconds: 5000)); // Add delay
+  }
+}
+
+Future<void> initializeBackgroundService() async {
+  final service = FlutterBackgroundService();
+
+  await service.configure(
+    androidConfiguration: AndroidConfiguration(
+      onStart: onStart,
+      autoStart: true,
+      isForegroundMode: true
+    ),
+    iosConfiguration: IosConfiguration(
+      onForeground: onStart,
+      onBackground: onIosBackground,
+    ),
+  );
+  print('Hi this is initializeBackgroundService');
+  service.startService();
+}
+
+
+@pragma('vm:entry-point')
+bool onIosBackground(ServiceInstance service) {
+  return true;
+}
+
+ShakeDetector? shakeDetector;
+
+@pragma('vm:entry-point')
+void onStart(ServiceInstance service) {
+  print('Service Started');
+  if (service is AndroidServiceInstance) {
+    print('inside this if block: service is AndroidServiceInstance');
+    service.on("setAsForeground").listen((event) {
+      service.setAsForegroundService();
+    });
+  }
+
+  service.on("sendSOS").listen((event) {
+    print('sendSos invoked');
+    sendSOSAlert();
+  });
+
+  print('Before initializing ShakeDetector.autoStart');
+  ShakeDetector.autoStart(
+    onShake: () {
+      print('Device has been shook');
+      sendSOSAlert();
+      service.invoke("sendSOS");
+    },
+    shakeThresholdGravity: 2.5, // Adjust shake sensitivity
+  );
+
+  print('After initializing ShakeDetector.autoStart');
 }
 
 class MyApp extends StatelessWidget {
