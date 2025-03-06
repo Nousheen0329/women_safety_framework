@@ -4,6 +4,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart'; // For animation effects
+import 'package:women_safety_framework/fetchWorkplaceDetails.dart';
 import 'package:women_safety_framework/reusable_widgets/buttons.dart';
 import 'package:women_safety_framework/roles/normal_user/forum/forum_home.dart';
 import 'package:women_safety_framework/roles/normal_user/home.dart';
@@ -24,25 +25,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int qIndex = 0;
   final FlutterSecureStorage _storage = FlutterSecureStorage();
-  // Generate a random quote index
-  void getRandomQuote() {
-    Random random = Random();
-    if (sweetSayings.isNotEmpty) {
-      setState(() {
-        qIndex = random.nextInt(sweetSayings.length);
-      });
-    } else {
-      print("Error: sweetSayings list is empty!");
-    }
-  }
 
   @override
   void initState() {
     super.initState();
     _startBackgroundService();
-    getRandomQuote();
+    fetchAndStoreWorkplaceData();
   }
 
   void _startBackgroundService() {

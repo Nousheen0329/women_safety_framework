@@ -66,16 +66,44 @@ void stopBatteryMonitoring() async {
 }
 
 Future<void> sendSOSAlert() async {
-  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  String? storedContacts = await _secureStorage.read(key: "emergency_contacts");
+  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  String? storedContacts = await secureStorage.read(key: "emergency_contacts");
+  String? workplaceContactsData = await storage.read(key: "workplace_emergency_contacts");
+  List<String> workplaceContacts = workplaceContactsData != null ? List<String>.from(jsonDecode(workplaceContactsData)) : [];
+  String? geofenceData = await storage.read(key: "workplace_geofence_settings");
+  bool isAtWorkplace = false;
+
+  if (geofenceData != null) {
+    Map<String, dynamic> geofence = jsonDecode(geofenceData);
+    print(geofence);
+    double geofenceLat = geofence["latitude"];
+    double geofenceLon = geofence["longitude"];
+    double geofenceRadius = geofence["radius"];
+
+    try {
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      double distance = Geolocator.distanceBetween(position.latitude, position.longitude, geofenceLat, geofenceLon);
+      isAtWorkplace = distance <= geofenceRadius;
+      print('isAtWorkplace ${isAtWorkplace}');
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Failed to get location. Sending SOS to emergency contacts only.");
+    }
+  }
+
   List<String> contacts = [];
   if (storedContacts != null && storedContacts.isNotEmpty) {
-      contacts = List<String>.from(jsonDecode(storedContacts));
+    contacts = List<String>.from(jsonDecode(storedContacts));
   }
   if (contacts.isEmpty) {
     Fluttertoast.showToast(msg: "No emergency contacts added.");
     return;
   }
+
+  List<String> recipients = contacts;
+  if (isAtWorkplace) {
+    recipients.addAll(workplaceContacts);
+  }
+
   Position? position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
   String locationUrl = "";
   if(position!=null){
