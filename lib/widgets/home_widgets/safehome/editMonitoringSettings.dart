@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:location_picker_flutter_map/location_picker_flutter_map.dart';
@@ -31,7 +32,7 @@ class EditMonitoringSettings extends StatefulWidget {
 
 class _MonitoringSettingWidgetState extends State<EditMonitoringSettings> {
   bool _batteryMonitoring = false;
-  bool _geofencingEnabled = false;
+  bool _gestureMonitoring = false;
 
   @override
   void initState() {
@@ -42,12 +43,12 @@ class _MonitoringSettingWidgetState extends State<EditMonitoringSettings> {
   Future<void> _loadSettings() async {
     String? batterySetting = await widget.secureStorage.read(
         key: "battery_monitoring_enabled");
-    String? geofenceSetting = await widget.secureStorage.read(
-        key: "geofencing_enabled");
+    String? gestureSetting = await widget.secureStorage.read(
+        key: "gesture_monitoring_enabled");
 
     setState(() {
       _batteryMonitoring = batterySetting == "true";
-      _geofencingEnabled = geofenceSetting == "true";
+      _gestureMonitoring = gestureSetting == "true";
     });
   }
 
@@ -55,20 +56,27 @@ class _MonitoringSettingWidgetState extends State<EditMonitoringSettings> {
     await widget.secureStorage.write(key: "battery_monitoring_enabled",
         value: _batteryMonitoring.toString());
     await widget.secureStorage.write(
-        key: "geofencing_enabled", value: _geofencingEnabled.toString());
+        key: "gesture_monitoring_enabled", value: _gestureMonitoring.toString());
+    if(_batteryMonitoring==false){
+      stopBatteryMonitoring();
+    }
+    if(_gestureMonitoring==false){
+      final service = FlutterBackgroundService();
+      service.invoke("stop");
+    }
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Background Monitoring"),
           content:
-          normalText("Battery Monitoring and Geofence Alerts require the app to be running on the background. Please ensure that you do not delete the app from recent apps while using your phone. This may affect battery. If you do not need this, it can be disabled."),
+          Text("Please restart the app for the changes to reflect. Gesture Monitoring requires the app to be running on the background. Please ensure that you do not delete the app from recent apps while using your phone. This may affect battery. If you do not need this, it can be disabled."),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
               },
-              child: normalText("OK"),
+              child: Text("OK"),
             ),
           ],
         );
@@ -93,12 +101,12 @@ class _MonitoringSettingWidgetState extends State<EditMonitoringSettings> {
           },
         ),
         SwitchListTile(
-          title: normalText("Enable Geofence Alerts"),
+          title: normalText("Enable Gesture Monitoring"),
           activeTrackColor: Colors.green[400],
-          value: _geofencingEnabled,
+          value: _gestureMonitoring,
           onChanged: (value) {
             setState(() {
-              _geofencingEnabled = value;
+              _gestureMonitoring = value;
             });
           },
         ),

@@ -54,6 +54,7 @@ dependencies:
   battery_plus: ^6.2.0
   shake_detector: ^0.1.2
   flutter_background_service: ^5.1.0
+  flutter_local_notifications: ^18.0.1
   workmanager:
     git:
       url: https://github.com/fluttercommunity/flutter_workmanager.git

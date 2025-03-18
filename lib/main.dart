@@ -15,6 +15,9 @@ import 'package:workmanager/workmanager.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:shake_detector/shake_detector.dart';
 
+import 'backgroundSos.dart';
+import 'fetchWorkplaceDetails.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -29,8 +32,13 @@ void main() async {
     isInDebugMode: true, // Set to false for production
   );
 
-  await initializeBackgroundService();
   final storage = FlutterSecureStorage();
+  String? isGestureMonitoringEnabled = await storage.read(key: "gesture_monitoring_enabled");
+  if (isGestureMonitoringEnabled == "true"){
+    await initializeBackgroundService();
+    await SOSService.initializeNotifications(); // Initialize notifications
+  }
+
   String? isEnabled = await storage.read(key: "battery_monitoring_enabled");
   if (isEnabled == "true") {
     print("Registering");
@@ -63,68 +71,6 @@ void callbackDispatcher() {
 
 void stopBatteryMonitoring() async {
   await Workmanager().cancelByUniqueName("battery_monitor_task");
-}
-
-Future<void> sendSOSAlert() async {
-  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
-  String? storedContacts = await secureStorage.read(key: "emergency_contacts");
-  String? workplaceContactsData = await storage.read(key: "workplace_emergency_contacts");
-  List<String> workplaceContacts = workplaceContactsData != null ? List<String>.from(jsonDecode(workplaceContactsData)) : [];
-  String? geofenceData = await storage.read(key: "workplace_geofence_settings");
-  bool isAtWorkplace = false;
-
-  if (geofenceData != null) {
-    Map<String, dynamic> geofence = jsonDecode(geofenceData);
-    print(geofence);
-    double geofenceLat = geofence["latitude"];
-    double geofenceLon = geofence["longitude"];
-    double geofenceRadius = geofence["radius"];
-
-    try {
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      double distance = Geolocator.distanceBetween(position.latitude, position.longitude, geofenceLat, geofenceLon);
-      isAtWorkplace = distance <= geofenceRadius;
-      print('isAtWorkplace ${isAtWorkplace}');
-    } catch (e) {
-      Fluttertoast.showToast(msg: "Failed to get location. Sending SOS to emergency contacts only.");
-    }
-  }
-
-  List<String> contacts = [];
-  if (storedContacts != null && storedContacts.isNotEmpty) {
-    contacts = List<String>.from(jsonDecode(storedContacts));
-  }
-  if (contacts.isEmpty) {
-    Fluttertoast.showToast(msg: "No emergency contacts added.");
-    return;
-  }
-
-  List<String> recipients = contacts;
-  if (isAtWorkplace) {
-    recipients.addAll(workplaceContacts);
-  }
-
-  Position? position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-  String locationUrl = "";
-  if(position!=null){
-    locationUrl = "https://www.google.com/maps?q=${position.latitude},${position.longitude}";
-  }
-  else{
-    Fluttertoast.showToast(msg: "Location was not read.");
-    return;
-  }
-
-  String message = "You have received an SOS. This is an emergency alert. My location: $locationUrl.\n";
-
-  for (String contact in contacts) {
-    SmsStatus result = await BackgroundSms.sendMessage(phoneNumber: contact, message: message);
-    if (result == SmsStatus.sent) {
-      Fluttertoast.showToast(msg: "SOS alert sent to contact ${contact}");
-    } else {
-      Fluttertoast.showToast(msg: "Alert not sent to contact ${contact}, please try again");
-    }
-    await Future.delayed(Duration(milliseconds: 5000)); // Add delay
-  }
 }
 
 Future<void> initializeBackgroundService() async {
@@ -165,14 +111,14 @@ void onStart(ServiceInstance service) {
 
   service.on("sendSOS").listen((event) {
     print('sendSos invoked');
-    sendSOSAlert();
+    SOSService.sendSOSAlert();
   });
 
   print('Before initializing ShakeDetector.autoStart');
   ShakeDetector.autoStart(
     onShake: () {
       print('Device has been shook');
-      sendSOSAlert();
+      SOSService.sendSOSAlert();
       service.invoke("sendSOS");
     },
     shakeThresholdGravity: 2.5, // Adjust shake sensitivity

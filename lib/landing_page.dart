@@ -1,13 +1,19 @@
 import 'dart:math';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart'; // For animation effects
+import 'package:url_launcher/url_launcher.dart';
 import 'package:women_safety_framework/fetchWorkplaceDetails.dart';
 import 'package:women_safety_framework/reusable_widgets/buttons.dart';
+import 'package:women_safety_framework/reusable_widgets/textStyles.dart';
 import 'package:women_safety_framework/roles/normal_user/forum/forum_home.dart';
 import 'package:women_safety_framework/roles/normal_user/home.dart';
+import 'package:women_safety_framework/utils/color_utils.dart';
+import 'package:women_safety_framework/widgets/home_widgets/safewebview.dart';
 import 'utils/quotes.dart';
 import 'widgets/home_widgets/CustomCarousel.dart'; // Fixed typo
 import 'widgets/home_widgets/emergency.dart';
@@ -39,13 +45,18 @@ class _HomeScreenState extends State<HomeScreen> {
     service.invoke("setAsForeground");
   }
 
+  void navigateToRoute(BuildContext context, Widget route) {
+    Navigator.push(context, CupertinoPageRoute(builder: (context) => route));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFF3ADAD), Color(0xFFFFFFFF)], // Vibrant gradient
+            colors: [hexStringToColor('9AA1D9'),
+              hexStringToColor('9070BA'),], // Vibrant gradient
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -62,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12.0),
                       child: Text(
-                        "✨ A3 presents EmpowerHer App ✨",
+                        "EmpowerHer",
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           fontSize: 22,
@@ -87,16 +98,54 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(height: 10),
                   SafeHome(),
 
-                  SizedBox(height: 10),
-                  _buildSectionTitle("Emergency"),
+                  buildSectionTitle("Emergency"),
                   Emergency(),
 
-                  SizedBox(height: 10),
-                  _buildSectionTitle("Explore Livesafe Locations"),
+                  buildSectionTitle("Explore Livesafe Locations"),
                   LiveSafe(),
 
-                  SizedBox(height: 10),
-                  _buildSectionTitle("Sign In Options"),
+                  buildSectionTitle("Chatbot"),
+                  InkWell(
+                    onTap: () async {
+                      final String _gradiourl = "https://96cb24bfb0ec6f14ae.gradio.live/";
+                      final Uri _url = Uri.parse(_gradiourl);
+                      try {
+                        await launchUrl(_url);
+                      } catch (e) {
+                        Fluttertoast.showToast(msg: 'Could not launch map!');
+                      }
+                    },
+                    child: Card(
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      child: Container(
+                        height: 150,
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: ListTile(
+                                title: Text(
+                                    "Ask Questions to Chatbot",
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    )
+                                ),
+                              ),
+                            ),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Image.asset('assets/chatbot.jpg', fit: BoxFit.contain, height: 150, ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  buildSectionTitle("Sign In Options"),
 
                   CustomButton(text:"Sign in to Anonymous Forum", onPressed: () async {
                     String? uid = await _storage.read(key: 'normal_uid');
@@ -154,35 +203,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  // Method to create stylish section titles
-  Widget _buildSectionTitle(String text) {
-    return AnimatedDefaultTextStyle(
-      duration: Duration(seconds: 2),
-      style: GoogleFonts.poppins(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-        letterSpacing: 1.1,
-        shadows: [
-          Shadow(
-            offset: Offset(2.0, 2.0),
-            blurRadius: 5.0,
-            color: Colors.black.withOpacity(0.5),
-          ),
-        ],
-      ),
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-          letterSpacing: 1.1,
         ),
       ),
     );

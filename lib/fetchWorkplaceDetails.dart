@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
 
 Future<void> fetchAndStoreWorkplaceData() async {
   final storage = FlutterSecureStorage();
@@ -78,3 +79,28 @@ Future<void> fetchAndStoreWorkplaceData() async {
     Fluttertoast.showToast(msg: "Error fetching workplace data: $e");
   }
 }
+
+Future<bool> checkIfAtWorkplace() async {
+  final FlutterSecureStorage storage = FlutterSecureStorage();
+  String? geofenceData = await storage.read(key: "workplace_geofence_settings");
+
+  if (geofenceData == null) {
+    return false; // No geofence data found
+  }
+
+  try {
+    Map<String, dynamic> geofence = jsonDecode(geofenceData);
+    double geofenceLat = geofence["latitude"];
+    double geofenceLon = geofence["longitude"];
+    double geofenceRadius = geofence["radius"];
+
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    double distance = Geolocator.distanceBetween(position.latitude, position.longitude, geofenceLat, geofenceLon);
+
+    return distance <= geofenceRadius;
+  } catch (e) {
+    Fluttertoast.showToast(msg: "Failed to get location for workplace check.");
+    return false;
+  }
+}
+

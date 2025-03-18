@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 
+import '../../../fetchWorkplaceDetails.dart';
 import '../../../reusable_widgets/textStyles.dart';
 import 'customizeEmergencyAlert.dart';
 
@@ -19,6 +20,7 @@ class SafeHome extends StatefulWidget {
 class _SafeHomeState extends State<SafeHome> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   List<String> _contacts = [];
+  List<String> _workplaceContacts = [];
   bool isSendingSOS = false;
 
   @override
@@ -32,9 +34,16 @@ class _SafeHomeState extends State<SafeHome> {
   // Load contacts securely
   Future<void> _loadContacts() async {
     String? storedContacts = await _secureStorage.read(key: "emergency_contacts");
+    String? workplaceContactsData = await _secureStorage.read(key: "workplace_emergency_contacts");
+
     if (storedContacts != null && storedContacts.isNotEmpty) {
       setState(() {
         _contacts = List<String>.from(jsonDecode(storedContacts));
+      });
+    }
+    if (workplaceContactsData != null && workplaceContactsData.isNotEmpty) {
+      setState(() {
+        _workplaceContacts = List<String>.from(jsonDecode(workplaceContactsData));
       });
     }
   }
@@ -72,6 +81,12 @@ class _SafeHomeState extends State<SafeHome> {
       Fluttertoast.showToast(msg: "No emergency contacts added.");
       return;
     }
+    bool isAtWorkplace = await checkIfAtWorkplace();
+    List<String> recipients = _contacts;
+    if (isAtWorkplace) {
+      recipients.addAll(_workplaceContacts);
+    }
+
     Position? position = await _getCurrentLocation();
     String locationUrl = "";
     if(position!=null){
@@ -86,7 +101,7 @@ class _SafeHomeState extends State<SafeHome> {
     setState(() {
       isSendingSOS = true;
     });
-    for (String contact in _contacts) {
+    for (String contact in recipients) {
       SmsStatus result = await BackgroundSms.sendMessage(phoneNumber: contact, message: message);
       if (result == SmsStatus.sent) {
         Fluttertoast.showToast(msg: "SOS alert sent to contact ${contact}");
@@ -177,3 +192,4 @@ class _SafeHomeState extends State<SafeHome> {
     );
   }
 }
+

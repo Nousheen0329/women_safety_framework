@@ -16,26 +16,9 @@ class CustomizeAlertPage extends StatefulWidget {
 
 class _CustomizeAlertPageState extends State<CustomizeAlertPage> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  double _geofenceRadius = 0;
-  double _geofenceLatitude = 0;
-  double _geofenceLongitude = 0;
 
   void initState() {
     super.initState();
-    _loadGeofenceSettings();
-  }
-
-  Future<void> _loadGeofenceSettings() async {
-    String? storedGeofence = await _secureStorage.read(
-        key: "geofence_settings");
-    if (storedGeofence != null) {
-      Map<String, dynamic> geofenceData = jsonDecode(storedGeofence);
-      setState(() {
-        _geofenceLatitude = geofenceData["latitude"];
-        _geofenceLongitude = geofenceData["longitude"];
-        _geofenceRadius = geofenceData["radius"];
-      });
-    }
   }
 
   @override
@@ -47,9 +30,8 @@ class _CustomizeAlertPageState extends State<CustomizeAlertPage> {
             decoration: BoxDecoration(
             gradient: LinearGradient(
               colors:[
-                hexStringToColor("CB2B93"),
-                hexStringToColor("9546C4"),
-                hexStringToColor("5E61F4")
+                hexStringToColor('9AA1D9'),
+                hexStringToColor('9070BA'),
               ], // Vibrant gradient
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,

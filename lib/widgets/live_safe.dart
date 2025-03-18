@@ -157,7 +157,7 @@ class _LiveSafeState extends State<LiveSafe> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(10.0),
       child: SingleChildScrollView(
         child: Column(
           children: [
@@ -230,7 +230,6 @@ class _LiveSafeState extends State<LiveSafe> {
                 padding: const EdgeInsets.all(16.0),
                 child: CircularProgressIndicator(),
               ),
-            SizedBox(height: 20),
             ...hospitals,
           ],
         ),
