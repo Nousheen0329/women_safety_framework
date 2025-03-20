@@ -110,6 +110,24 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void deleteContact(String contactId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('organization')
+          .doc(organizationId)
+          .collection('security_team')
+          .doc(contactId)
+          .delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Contact deleted successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete contact')),
+      );
+    }
+  }
+
   void _addEmergencyContact() {
     TextEditingController nameController = TextEditingController();
     TextEditingController phoneController = TextEditingController();
@@ -342,6 +360,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           itemCount: contacts.length,
                           itemBuilder: (context, index) {
                             var contact = contacts[index];
+                            var contactId = contact.id;
                             return Card(
                               margin: EdgeInsets.symmetric(vertical: 6),
                               shape: RoundedRectangleBorder(
@@ -353,6 +372,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 title: Text(contact['name'] ?? 'Unknown'),
                                 subtitle:
                                     Text(contact['phone'] ?? 'No phone number'),
+                                trailing: IconButton(
+                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => deleteContact(contactId),
+                                ),
                               ),
                             );
                           },
