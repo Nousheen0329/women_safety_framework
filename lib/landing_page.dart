@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart'; // For animation effects
+import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:women_safety_framework/fetchWorkplaceDetails.dart';
 import 'package:women_safety_framework/reusable_widgets/buttons.dart';
@@ -38,6 +40,8 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _startBackgroundService();
     fetchAndStoreWorkplaceData();
+    requestLocationPermission();
+    requestSMSPermission();
   }
 
   void _startBackgroundService() {
@@ -47,6 +51,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void navigateToRoute(BuildContext context, Widget route) {
     Navigator.push(context, CupertinoPageRoute(builder: (context) => route));
+  }
+
+  Future<Position?> requestLocationPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        Fluttertoast.showToast(msg: "Location permission denied.");
+        return null;
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      Fluttertoast.showToast(msg: "Location permission permanently denied. Please enable from settings to send location.");
+      openAppSettings();
+      return null;
+    }
+  }
+
+  Future<void> requestSMSPermission() async {
+    PermissionStatus status = await Permission.sms.status;
+    if (status.isDenied) {
+      Fluttertoast.showToast(msg: "SMS permission denied.");
+      await Permission.sms.request();
+    } else if (status.isPermanentlyDenied) {
+      openAppSettings();
+    }
   }
 
   @override
@@ -92,22 +123,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // Carousel Section
-                  CustomCarousel(),
-
-                  SizedBox(height: 10),
+                  SizedBox(height:10),
                   SafeHome(),
 
-                  buildSectionTitle("Emergency"),
+                  buildSectionTitle("Emergency Services"),
                   Emergency(),
 
-                  buildSectionTitle("Explore Livesafe Locations"),
+                  buildSectionTitle("Explore Safe Locations"),
                   LiveSafe(),
 
                   buildSectionTitle("Chatbot"),
                   InkWell(
                     onTap: () async {
-                      final String _gradiourl = "https://96cb24bfb0ec6f14ae.gradio.live/";
+                      final String _gradiourl = "https://208820cd5a0d23b341.gradio.live/";
                       final Uri _url = Uri.parse(_gradiourl);
                       try {
                         await launchUrl(_url);
@@ -144,6 +172,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
+
+                  buildSectionTitle("Document Repository"),// Carousel Section
+                  CustomCarousel(),
 
                   buildSectionTitle("Sign In Options"),
 

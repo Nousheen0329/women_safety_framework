@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:women_safety_framework/landing_page.dart';
 import 'dart:convert';
 
 import '../../../fetchWorkplaceDetails.dart';
@@ -48,34 +49,6 @@ class _SafeHomeState extends State<SafeHome> {
     }
   }
 
-  Future<Position?> _getCurrentLocation() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        Fluttertoast.showToast(msg: "Location permission denied.");
-        return null;
-      }
-    }
-    if (permission == LocationPermission.deniedForever) {
-      Fluttertoast.showToast(msg: "Location permission permanently denied. Please enable from settings to send location.");
-      openAppSettings();
-      return null;
-    }
-    return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-  }
-
-  Future<void> requestSMSPermission() async {
-    PermissionStatus status = await Permission.sms.status;
-    if (status.isDenied) {
-      Fluttertoast.showToast(msg: "SMS permission denied.");
-      await Permission.sms.request();
-    } else if (status.isPermanentlyDenied) {
-    openAppSettings();
-  }
-  }
-
   Future<void> sendSOSAlert() async {
     if (_contacts.isEmpty) {
       Fluttertoast.showToast(msg: "No emergency contacts added.");
@@ -87,7 +60,7 @@ class _SafeHomeState extends State<SafeHome> {
       recipients.addAll(_workplaceContacts);
     }
 
-    Position? position = await _getCurrentLocation();
+    Position? position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);;
     String locationUrl = "";
     if(position!=null){
       locationUrl = "https://www.google.com/maps?q=${position.latitude},${position.longitude}";
@@ -132,8 +105,7 @@ class _SafeHomeState extends State<SafeHome> {
     return Column(
       children: [
         InkWell(
-          onTap: () async {
-            await requestSMSPermission();
+          onTap: () {
             sendSOSAlert();
           },
           child: Card(

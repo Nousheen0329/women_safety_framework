@@ -9,24 +9,6 @@ import 'package:permission_handler/permission_handler.dart';
 final storage = FlutterSecureStorage();
 final Battery _battery = Battery();
 
-Future<Position?> _getCurrentLocation() async {
-  LocationPermission permission = await Geolocator.checkPermission();
-
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied) {
-      Fluttertoast.showToast(msg: "Location permission denied.");
-      return null;
-    }
-  }
-  if (permission == LocationPermission.deniedForever) {
-    Fluttertoast.showToast(msg: "Location permission permanently denied. Please enable from settings to send location.");
-    openAppSettings();
-    return null;
-  }
-  return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-}
-
 Future<void> checkBatteryLevel() async {
   // Check if the user has enabled battery monitoring
   String? isEnabled = await storage.read(key: "battery_monitoring_enabled");
@@ -46,7 +28,7 @@ Future<void> sendEmergencyAlert(String batteryLevelMessage) async {
   if (storedContacts != null && storedContacts.isNotEmpty) {
       contacts = List<String>.from(jsonDecode(storedContacts));
   }
-  Position? position = await _getCurrentLocation();
+  Position? position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
   String locationUrl = "";
   if(position!=null){
     locationUrl = "https://www.google.com/maps?q=${position.latitude},${position.longitude}";

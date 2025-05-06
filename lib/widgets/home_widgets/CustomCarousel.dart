@@ -36,25 +36,25 @@ class CustomCarousel extends StatelessWidget {
                       context,
                       SafeWebView(
                           url:
-                          "https://gulfnews.com/world/asia/pakistan/womens-day-10-pakistani-women-inspiring-the-country-1.77696239"));
+                          "https://www.internationalwomensday.com/About"));
                 } else if (index == 1) {
                   navigateToRoute(
                       context,
                       SafeWebView(
                           url:
-                          "https://plan-international.org/ending-violence/16-ways-end-violence-girls"));
+                          "https://www.healthline.com/health/womens-health/self-defense-tips-escape"));
                 } else if (index == 2) {
                   navigateToRoute(
                       context,
                       SafeWebView(
                           url:
-                          "https://www.healthline.com/health/womens-health/self-defense-tips-escape"));
+                          "https://testbook.com/static-gk/laws-protecting-women-in-india"));
                 } else {
                   navigateToRoute(
                       context,
                       SafeWebView(
                           url:
-                          "https://www.healthline.com/health/womens-health/self-defense-tips-escape"));
+                          "https://www.mayoclinic.org/healthy-lifestyle/adult-health/in-depth/domestic-violence/art-20048397"));
                 }
               },
               child: Container(
@@ -68,10 +68,6 @@ class CustomCarousel extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    gradient: LinearGradient(colors: [
-                      Colors.black.withOpacity(0.5),
-                      Colors.transparent,
-                    ]),
                   ),
                   child: Align(
                     alignment: Alignment.bottomLeft,

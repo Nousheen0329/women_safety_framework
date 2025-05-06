@@ -10,13 +10,101 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:women_safety_framework/splash_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:women_safety_framework/widgets/home_widgets/safehome/batteryMonitoring.dart';
-import 'package:women_safety_framework/widgets/home_widgets/safehome/SafeHome.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:shake_detector/shake_detector.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import 'backgroundSos.dart';
 import 'fetchWorkplaceDetails.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
+
+void triggerSOS() {
+    showSOSNotification();
+}
+
+Future<void> sendSOSMessages() async {
+  FlutterSecureStorage _storage = FlutterSecureStorage();
+  print("Sending SOS...");
+
+  String? storedContacts = await _storage.read(key: "emergency_contacts");
+  String? workplaceContactsData = await _storage.read(key: "workplace_emergency_contacts");
+
+  List<String> workplaceContacts = workplaceContactsData != null
+      ? List<String>.from(jsonDecode(workplaceContactsData))
+      : [];
+
+  List<String> contacts = storedContacts != null && storedContacts.isNotEmpty
+      ? List<String>.from(jsonDecode(storedContacts))
+      : [];
+
+  if (contacts.isEmpty) {
+    Fluttertoast.showToast(msg: "No emergency contacts added.");
+    return;
+  }
+
+  bool isAtWorkplace = await checkIfAtWorkplace();
+  List<String> recipients = contacts;
+  if (isAtWorkplace) recipients.addAll(workplaceContacts);
+
+  Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  String locationUrl = "https://www.google.com/maps?q=${position.latitude},${position.longitude}";
+
+  String message = "You have received an SOS. This is an emergency alert. My location: $locationUrl.\n";
+
+  for (String contact in recipients) {
+    SmsStatus result = await BackgroundSms.sendMessage(phoneNumber: contact, message: message);
+    Fluttertoast.showToast(msg: result == SmsStatus.sent
+        ? "SOS alert sent to $contact"
+        : "Alert not sent to $contact, please try again");
+    await Future.delayed(Duration(milliseconds: 5000)); // Delay between messages
+  }
+}
+
+void showSOSNotification() async {
+  print('Inside showSOSnotification');
+  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    'sos_channel', 'SOS Alerts',
+    importance: Importance.high,
+    icon: "@mipmap/ic_launcher",
+    priority: Priority.high,
+    actions: <AndroidNotificationAction>[
+      AndroidNotificationAction('cancel_sos', 'Cancel SOS')
+    ],
+  );
+
+  const NotificationDetails notificationDetails =
+  NotificationDetails(android: androidDetails);
+
+  await flutterLocalNotificationsPlugin.show(
+    0, "SOS Alert", "Double-Tap to cancel within 10 seconds.", notificationDetails, payload: 'cancel_sos',
+  );
+
+  FlutterSecureStorage _storage = FlutterSecureStorage();
+  await _storage.write(key: "sos_cancelled", value: "false");
+
+  Future.delayed(Duration(seconds: 10), () async {
+    String? isCancelled = await _storage.read(key: "sos_cancelled");
+    print('sos_cancelled value: $isCancelled');
+    if (isCancelled!='true') {
+      sendSOSMessages();
+    }
+  });
+}
+
+void onNotificationAction(String payload) async {
+  print("Notification action detected: $payload");
+  if (payload == 'cancel_sos') {
+    FlutterSecureStorage _storage = FlutterSecureStorage();
+    await _storage.write(key: "sos_cancelled", value: "true");
+    Fluttertoast.showToast(msg: "SOS Canceled");
+  }
+}
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,10 +122,23 @@ void main() async {
 
   final storage = FlutterSecureStorage();
   String? isGestureMonitoringEnabled = await storage.read(key: "gesture_monitoring_enabled");
-  if (isGestureMonitoringEnabled == "true"){
     await initializeBackgroundService();
-    await SOSService.initializeNotifications(); // Initialize notifications
-  }
+
+    flutterLocalNotificationsPlugin.initialize(
+      InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher')),
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        print('Notification tapped'); // ✅ This should now zcv print
+        if (response.payload != null) {
+          onNotificationAction(response.payload!);
+        }
+      },
+      onDidReceiveBackgroundNotificationResponse: (NotificationResponse response) {
+        print('Notification action detected in background'); // ✅ Debugging
+        if (response.payload != null) {
+          onNotificationAction(response.payload!);
+        }
+      },
+    );
 
   String? isEnabled = await storage.read(key: "battery_monitoring_enabled");
   if (isEnabled == "true") {
@@ -111,14 +212,14 @@ void onStart(ServiceInstance service) {
 
   service.on("sendSOS").listen((event) {
     print('sendSos invoked');
-    SOSService.sendSOSAlert();
+    triggerSOS();
   });
 
   print('Before initializing ShakeDetector.autoStart');
   ShakeDetector.autoStart(
     onShake: () {
       print('Device has been shook');
-      SOSService.sendSOSAlert();
+      triggerSOS();
       service.invoke("sendSOS");
     },
     shakeThresholdGravity: 2.5, // Adjust shake sensitivity
@@ -135,6 +236,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       title: 'EmpowerHer',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),

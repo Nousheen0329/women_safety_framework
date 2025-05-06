@@ -115,6 +115,24 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _deleteContact(String contactId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('organization')
+          .doc(organizationId)
+          .collection('security_team')
+          .doc(contactId)
+          .delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Contact deleted successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete contact')),
+      );
+    }
+  }
+
   void _addEmergencyContact() {
     TextEditingController nameController = TextEditingController();
     TextEditingController phoneController = TextEditingController();
@@ -171,17 +189,27 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Admin Dashboard"),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout_outlined),
+            onPressed: () async {
+              await SecureStorageService().clearUserData("org_admin_uid");
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => AdminSignin()));
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
         gradient: LinearGradient(
         colors:[
-        hexStringToColor('9AA1D9'),
-        hexStringToColor('9070BA'),
+          hexStringToColor('9AA1D9'),
+          hexStringToColor('9070BA'),
         ], // Vibrant gradient
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
         ),
         ),
         child: SafeArea( 
@@ -191,14 +219,14 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              buildSectionTitle('Welcome Admin'),
+              buildSectionTitle('Organization Details'),
               Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15)),
                 child: ListTile(
                   leading:
-                      Icon(Icons.business, color: hexStringToColor("5E61F4")),
+                      Icon(Icons.business),
                   title: const Text("Your Organization"),
                   subtitle: Text(organizationName == null
                       ? "Fetching..."
@@ -207,43 +235,53 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 16),
               Center(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            WorkingWomenList(organizationId: organizationId!),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.people, color: Colors.indigoAccent),
-                  label: const Text(
-                    "Working Women in Your Organization",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w100, color: Colors.black87),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    minimumSize: const Size(250, 50),
-                    alignment: Alignment.center,
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15)),
+                  child: ListTile(
+                    leading:
+                    Icon(Icons.supervised_user_circle),
+                    title: Text(organizationName == null
+                        ? "Fetching..."
+                        : "View Employees"),
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              WorkingWomenList(organizationId: organizationId!),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              CustomButton(text: "View Reports", onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        AdminReportsList(adminOrgId: organizationId!),
+              Center(
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15)),
+                  child: ListTile(
+                    leading:
+                    Icon(Icons.crisis_alert),
+                    title: Text(organizationName == null
+                        ? "Fetching..."
+                        : "View Reports"),
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              AdminReportsList(adminOrgId: organizationId!),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-              icon: const Icon(Icons.report),
+                ),
               ),
 
               buildSectionTitle("Workplace Policies"),
@@ -318,6 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           itemCount: contacts.length,
                           itemBuilder: (context, index) {
                             var contact = contacts[index];
+                            var contactId = contact.id;
                             return Card(
                               margin: EdgeInsets.symmetric(vertical: 6),
                               shape: RoundedRectangleBorder(
@@ -329,6 +368,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 title: Text(contact['name'] ?? 'Unknown'),
                                 subtitle:
                                     Text(contact['phone'] ?? 'No phone number'),
+                                trailing: IconButton(
+                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      onPressed:  () => _deleteContact(contactId),
+                                ),
                               ),
                             );
                           },
@@ -347,24 +390,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       ),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: hexStringToColor("CB2B93"),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-          ),
-          onPressed: () async {
-            await SecureStorageService().clearUserData("org_admin_uid");
-            Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (context) => AdminSignin()));
-          },
-          child: const Text("Logout",
-              style: TextStyle(color: Colors.white, fontSize: 16)),
-        ),
       ),
     );
   }

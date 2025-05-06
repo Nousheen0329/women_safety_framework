@@ -47,7 +47,6 @@ class _CustomizeAlertPageState extends State<CustomizeAlertPage> {
                   SizedBox(height: 10),
                   EditMonitoringSettings(secureStorage: _secureStorage),
                   SizedBox(height:10),
-                  GeofencingWidget(secureStorage: _secureStorage),
                 ],
               ),
             ),
