@@ -5,6 +5,8 @@ import 'package:women_safety_framework/utils/color_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../reusable_widgets/buttons.dart';
+
 class AdminSignup extends StatefulWidget {
   const AdminSignup({super.key});
 
@@ -128,7 +130,7 @@ class _AdminSignupState extends State<AdminSignup> {
                 const SizedBox(
                   height: 20,
                 ),
-                firebaseUIButton(context, "Sign Up", () async {
+                CustomButton(text: "Sign Up", onPressed: () async {
                   await signUpAdmin();
                 }),
               ],

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:women_safety_framework/reusable_widgets/reusable_widgets.dart';
+import 'package:women_safety_framework/roles/normal_user/forum/forum_home.dart';
 import 'package:women_safety_framework/roles/normal_user/signup.dart';
 import 'package:women_safety_framework/roles/normal_user/home.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
+
+import '../../reusable_widgets/buttons.dart';
+import '../secureStorageService.dart';
 
 class Signin extends StatefulWidget {
   const Signin({super.key});
@@ -32,10 +36,14 @@ class _SigninState extends State<Signin> {
     }
 
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      SecureStorageService().saveUserData("normal_uid", userCredential.user!.uid);
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const Home()),
+        MaterialPageRoute(builder: (context) => const ForumScreen()),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -71,7 +79,7 @@ class _SigninState extends State<Signin> {
             ),
             child: Column(
               children: <Widget>[
-                logoWidget("assets/images/logo1.png"),
+                logoWidget("assets/logo1.png"),
                 const SizedBox(height: 30),
                 reusableTextField(
                   "Email ID",
@@ -87,7 +95,7 @@ class _SigninState extends State<Signin> {
                   _passwordTextController,
                 ),
                 const SizedBox(height: 5),
-                firebaseUIButton(context, "Sign In", signInUser),
+                CustomButton(text: "Sign In", onPressed: signInUser),
                 signUpOption(),
               ],
             ),

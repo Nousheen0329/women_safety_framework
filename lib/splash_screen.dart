@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'package:women_safety_framework/landing_page.dart';
 import 'package:flutter/material.dart';
 import 'package:women_safety_framework/reusable_widgets/reusable_widgets.dart';
-import 'package:women_safety_framework/landing_page.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -35,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen>
     Timer(Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LandingPage()),
+        MaterialPageRoute(builder: (context) => HomeScreen()),
       );
     });
   }
@@ -69,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                logoWidget("assets/images/logo1.png"),
+                logoWidget("assets/logo1.png"),
                 SizedBox(height: 20),
                 Text(
                   "EmpowerHer",

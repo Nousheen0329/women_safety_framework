@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:women_safety_framework/reusable_widgets/buttons.dart';
+import 'package:women_safety_framework/reusable_widgets/textStyles.dart';
 import 'package:women_safety_framework/roles/organization_admin/reports/admin_reports_list.dart';
 import 'package:women_safety_framework/roles/organization_admin/working%20women/working_women_list.dart';
 import 'package:women_safety_framework/roles/workplace_policies.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
 import 'package:women_safety_framework/roles/organization_admin/admin_signin.dart';
+
+import '../secureStorageService.dart';
+import 'editGeofencingOrganization.dart';
 
 class HomeScreen extends StatefulWidget {
   final String adminId;
@@ -110,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void deleteContact(String contactId) async {
+  void _deleteContact(String contactId) async {
     try {
       await FirebaseFirestore.instance
           .collection('organization')
@@ -184,27 +189,44 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Admin Dashboard"),
-        backgroundColor: hexStringToColor("CB2B93"),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout_outlined),
+            onPressed: () async {
+              await SecureStorageService().clearUserData("org_admin_uid");
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => AdminSignin()));
+            },
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
+      body: Container(
+        decoration: BoxDecoration(
+        gradient: LinearGradient(
+        colors:[
+          hexStringToColor('9AA1D9'),
+          hexStringToColor('9070BA'),
+        ], // Vibrant gradient
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        ),
+        ),
+        child: SafeArea( 
+              child: SingleChildScrollView(
+                child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text(
-                "Welcome, Admin!",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
+              buildSectionTitle('Organization Details'),
               Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15)),
                 child: ListTile(
                   leading:
-                      Icon(Icons.business, color: hexStringToColor("5E61F4")),
+                      Icon(Icons.business),
                   title: const Text("Your Organization"),
                   subtitle: Text(organizationName == null
                       ? "Fetching..."
@@ -213,113 +235,91 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 16),
               Center(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            WorkingWomenList(organizationId: organizationId!),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.people, color: Colors.white, size: 28),
-                  label: const Text(
-                    "Working Women in Your Organization",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: hexStringToColor("CB2B93"),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    minimumSize: const Size(250, 50),
-                    alignment: Alignment.center,
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15)),
+                  child: ListTile(
+                    leading:
+                    Icon(Icons.supervised_user_circle),
+                    title: Text(organizationName == null
+                        ? "Fetching..."
+                        : "View Employees"),
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              WorkingWomenList(organizationId: organizationId!),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
               const SizedBox(height: 16),
               Center(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.report, color: Colors.white),
-                  label: const Text(
-                    "View Reports",
-                    style: TextStyle(color: Colors.white),
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15)),
+                  child: ListTile(
+                    leading:
+                    Icon(Icons.crisis_alert),
+                    title: Text(organizationName == null
+                        ? "Fetching..."
+                        : "View Reports"),
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              AdminReportsList(adminOrgId: organizationId!),
+                        ),
+                      );
+                    },
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: hexStringToColor("CB2B93"),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 24),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            AdminReportsList(adminOrgId: organizationId!),
-                      ),
-                    );
-                  },
                 ),
               ),
-              const SizedBox(height: 16),
+
+              buildSectionTitle("Workplace Policies"),
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        if (organizationId != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => WorkplacePolicies(
-                                organizationId: organizationId!,
-                                isAdmin: true,
-                              ),
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content:
-                                    Text('Organization ID not available!')),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.visibility, color: Colors.white),
-                      label: Text(
-                        "View Workplace Policies",
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: hexStringToColor("CB2B93"),
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 14, horizontal: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                    CustomButton(text: "View Workplace Policies", onPressed: () {
+                  if (organizationId != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => WorkplacePolicies(
+                          organizationId: organizationId!,
+                          isAdmin: true,
                         ),
                       ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content:
+                          Text('Organization ID not available!')),
+                    );
+                  }
+                },
+                  icon: const Icon(Icons.visibility),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 10),
                     ElevatedButton.icon(
                       onPressed: isUploading ? null : _uploadWorkplacePolicy,
-                      icon: const Icon(Icons.upload_file, color: Colors.white),
+                      icon: const Icon(Icons.upload_file),
                       label: Text(
                         isUploading
                             ? "Uploading..."
                             : "Upload Workplace Policies",
-                        style: const TextStyle(color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: hexStringToColor("CB2B93"),
                         padding: const EdgeInsets.symmetric(
                             vertical: 14, horizontal: 20),
                         shape: RoundedRectangleBorder(
@@ -330,12 +330,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 20),
-              Text(
-                "Emergency Contacts",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
               SizedBox(height: 10),
+              buildSectionTitle('Emergency Contacts'),
               organizationId == null
                   ? Center(child: CircularProgressIndicator())
                   : StreamBuilder<QuerySnapshot>(
@@ -373,8 +369,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 subtitle:
                                     Text(contact['phone'] ?? 'No phone number'),
                                 trailing: IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => deleteContact(contactId),
+                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      onPressed:  () => _deleteContact(contactId),
                                 ),
                               ),
                             );
@@ -382,44 +378,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
-              SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  onPressed: _addEmergencyContact,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: hexStringToColor("CB2B93"),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: Text(
-                    "Add Emergency Contact",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
+              SizedBox(height: 10),
+              CustomButton(text: "Add Emergency Contact", onPressed: _addEmergencyContact),
+              buildSectionTitle('Geofence Settings'),
+              SizedBox(height:10),
+              organizationId == null || organizationId!.isEmpty
+              ? Center(child: CircularProgressIndicator())
+              : GeofencingWidgetOrganization(organizationId: organizationId),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: hexStringToColor("CB2B93"),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-          ),
-          onPressed: () {
-            Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (context) => AdminSignin()));
-          },
-          child: const Text("Logout",
-              style: TextStyle(color: Colors.white, fontSize: 16)),
-        ),
+      ),
       ),
     );
   }
