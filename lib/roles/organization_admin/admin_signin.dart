@@ -6,6 +6,9 @@ import 'package:women_safety_framework/roles/organization_admin/admin_signup.dar
 import 'package:women_safety_framework/roles/organization_admin/admin_home.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
 
+import '../../reusable_widgets/buttons.dart';
+import '../secureStorageService.dart';
+
 class AdminSignin extends StatefulWidget {
   const AdminSignin({super.key});
 
@@ -40,7 +43,7 @@ class _AdminSigninState extends State<AdminSignin> {
         email: email,
         password: password,
       );
-
+      SecureStorageService().saveUserData("org_admin_uid", userCredential.user!.uid);
       // Check if the user exists in Firestore under "organization_admin"
       DocumentSnapshot adminDoc = await _firestore
           .collection("organization_admin")
@@ -84,7 +87,7 @@ class _AdminSigninState extends State<AdminSignin> {
               20, MediaQuery.of(context).size.height * 0.2, 20, 0),
           child: Column(
             children: <Widget>[
-              logoWidget("assets/images/logo1.png"),
+              logoWidget("assets/logo1.png"),
               const SizedBox(
                 height: 30,
               ),
@@ -98,7 +101,7 @@ class _AdminSigninState extends State<AdminSignin> {
               const SizedBox(
                 height: 5,
               ),
-              firebaseUIButton(context, "Sign In", () {
+              CustomButton(text: "Sign In", onPressed: () {
                 signInAdmin(); // Call sign-in function
               }),
               signUpOption(),

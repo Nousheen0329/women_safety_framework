@@ -5,6 +5,8 @@ import 'package:women_safety_framework/reusable_widgets/reusable_widgets.dart';
 import 'package:women_safety_framework/roles/working_women/emp_signin.dart';
 import 'package:women_safety_framework/utils/color_utils.dart';
 
+import '../../reusable_widgets/buttons.dart';
+
 class EmpSignup extends StatefulWidget {
   const EmpSignup({super.key});
 
@@ -203,8 +205,10 @@ class _EmpSignupState extends State<EmpSignup> {
                 const SizedBox(height: 20),
                 reusableTextField("Password", Icons.lock_outlined, true,
                     _passwordTextController),
-                const SizedBox(height: 20),
-                firebaseUIButton(context, "Sign Up", _signUpUser),
+                const SizedBox(
+                  height: 20,
+                ),
+                CustomButton(text: "Sign Up", onPressed: _signUpUser),
               ],
             ),
           ))),
